@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState } from 'react'
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react'
 import {
   Download,
   Moon,
@@ -72,6 +72,8 @@ function transactionsReducer(state, action) {
 }
 
 function App() {
+  const formSectionRef = useRef(null)
+  const dateInputRef = useRef(null)
   const [transactions, dispatch] = useReducer(
     transactionsReducer,
     DEFAULT_TRANSACTIONS,
@@ -196,6 +198,17 @@ function App() {
       category: '',
       type: 'expense',
       description: '',
+    })
+  }
+
+  const startAddTransaction = () => {
+    if (!isAdmin) return
+    resetForm()
+
+    // Make the Add button action obvious by taking the user to the form.
+    requestAnimationFrame(() => {
+      formSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      dateInputRef.current?.focus()
     })
   }
 
@@ -355,7 +368,7 @@ function App() {
               JSON
             </button>
             <button
-              onClick={resetForm}
+              onClick={startAddTransaction}
               disabled={!isAdmin}
               className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
             >
@@ -487,7 +500,10 @@ function App() {
         <InsightCard title="Observation" value={insights.observation} />
       </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <section
+        ref={formSectionRef}
+        className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900"
+      >
         <h2 className="mb-3 text-lg font-semibold">{editingTransaction ? 'Edit Transaction' : 'Add Transaction'}</h2>
         {!isAdmin && (
           <p className="mb-3 rounded-lg bg-amber-100 px-3 py-2 text-sm text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">
@@ -496,6 +512,7 @@ function App() {
         )}
         <form onSubmit={handleSubmitTransaction} className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <input
+            ref={dateInputRef}
             type="date"
             value={formState.date}
             onChange={(e) => setFormState((prev) => ({ ...prev, date: e.target.value }))}
